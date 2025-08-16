@@ -3,191 +3,315 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Happy Birthday!</title>
+    <title>A Very Special Day</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        /* CSS สำหรับตกแต่งหน้าเว็บและปุ่ม */
-        body {
+        :root {
+            --primary-color: #ff4757;
+            --text-color: #ffffff;
+            --bg-dark-overlay: rgba(0, 0, 0, 0.6);
+        }
+
+        * {
+            box-sizing: border-box;
             margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Mitr', sans-serif;
             height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #2c3e50; /* เปลี่ยนสีพื้นหลังให้เข้มขึ้นเพื่อให้เห็นควันชัดเจน */
-            font-family: 'Mitr', sans-serif; /* ใช้ฟอนต์ที่ดูน่ารักขึ้น (ต้อง import) */
-            overflow: hidden; /* ซ่อน scrollbar */
-            position: relative; /* ทำให้ body เป็นตัวอ้างอิงตำแหน่งของ element ลูก */
+            overflow: hidden;
+            color: var(--text-color);
         }
 
-        .start-button {
-            padding: 20px 40px;
-            font-size: 24px;
-            color: white;
-            background-color: #ff4757;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            outline: none;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            z-index: 10; /* ทำให้ปุ่มอยู่เหนือทุกอย่าง */
-        }
-
-        .start-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .start-button:active {
-            transform: translateY(1px);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-        }
-
-        .hidden {
-            transform: scale(0); /* ทำให้ปุ่มหดเล็กลงจนหายไป */
-            opacity: 0;
-            transition: transform 0.5s ease, opacity 0.5s ease;
-        }
-        
-        /* Container สำหรับข้อความ */
-        .text-container {
-            position: absolute;
-            text-align: center;
-            color: white;
-            z-index: 5;
-        }
-
-        /* สไตล์ข้อความที่ซ่อนไว้ตอนแรก */
-        .message {
-            font-size: 3em; /* 3 เท่าของขนาดฟอนต์ปกติ */
-            opacity: 0; /* ซ่อนไว้ตอนแรก */
-            transform: scale(0.8);
-            transition: opacity 1.5s ease-in-out, transform 1.5s ease-in-out;
-            position: absolute;
+        #game-container {
+            position: relative;
             width: 100%;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%) scale(0.8);
-        }
-        
-        /* คลาสสำหรับทำให้ข้อความแสดงผล */
-        .message.show {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(1);
+            height: 100%;
+            background-color: #000;
         }
 
-        /* ---- ส่วนของหมอกควัน (Fog/Smoke Effect) ---- */
-        #fog-container {
+        #scene-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            transition: background-image 1.5s ease-in-out, opacity 1.5s ease-in-out;
+            opacity: 0;
+        }
+
+        #story-wrapper {
             position: absolute;
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 100%;
-            overflow: hidden;
-            pointer-events: none; /* ทำให้คลิกทะลุได้ */
-            opacity: 0; /* ซ่อนไว้ตอนแรก */
-            transition: opacity 2s ease-in;
-        }
-
-        #fog-container.active {
-            opacity: 1; /* แสดงผลเมื่อมีคลาส active */
-        }
-
-        .fog-particle {
-            position: absolute;
-            bottom: -200px; /* เริ่มจากใต้จอ */
-            width: 200px;
-            height: 200px;
-            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%);
-            border-radius: 50%;
-            animation: floatUp 20s infinite linear;
+            padding: 40px 5%;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 1s ease-out 0.5s, transform 1s ease-out 0.5s;
         }
         
-        /* Keyframes สำหรับการเคลื่อนไหวของหมอก */
-        @keyframes floatUp {
-            0% {
-                transform: translateY(0) translateX(0) scale(1);
-                opacity: 0.5;
-            }
-            50% {
-                transform: translateY(-50vh) translateX(50px) scale(1.5);
-                opacity: 0.8;
-            }
-            100% {
-                transform: translateY(-100vh) translateX(-50px) scale(2);
-                opacity: 0;
-            }
+        #story-wrapper.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
 
+        #story-text {
+            font-size: 1.8rem;
+            text-shadow: 2px 2px 4px #000;
+            margin-bottom: 25px;
+            max-width: 800px;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        #choices-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .choice-btn {
+            font-family: 'Mitr', sans-serif;
+            font-size: 1.2rem;
+            padding: 12px 25px;
+            background-color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            color: var(--text-color);
+            border-radius: 50px;
+            cursor: pointer;
+            outline: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .choice-btn:hover {
+            background-color: #fff;
+            color: var(--primary-color);
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+        }
+        
+        #start-screen, #end-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-dark-overlay);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            text-align: center;
+            opacity: 1;
+            transition: opacity 1s ease;
+        }
+
+        #start-screen.hidden, #end-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #start-screen h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
     </style>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    
-    <button id="startButton" class="start-button">start</button>
 
-    <div class="text-container">
-        <h1 id="text1" class="message">วันนี้วันสำคัญของใครน้า...</h1>
-        <h1 id="text2" class="message">สุขสันต์วันเกิดนะ! 🎂</h1>
+    <div id="game-container">
+        <div id="scene-background"></div>
+
+        <div id="start-screen">
+            <h1>เรื่องราวในวันพิเศษกำลังจะเริ่มขึ้น...</h1>
+            <button class="choice-btn" id="start-btn">เริ่มต้นการผจญภัย</button>
+        </div>
+
+        <div id="story-wrapper">
+            <p id="story-text"></p>
+            <div id="choices-container"></div>
+        </div>
+        
+        <div id="end-screen" class="hidden">
+             <h1>สุขสันต์วันเกิดนะ!</h1>
+             <p style="font-size: 1.5rem; margin-bottom: 20px;">ขอให้เป็นปีที่ยอดเยี่ยม เต็มไปด้วยความสุขและรอยยิ้ม</p>
+             <button class="choice-btn" id="replay-btn">เล่นอีกครั้ง</button>
+        </div>
     </div>
-
-    <div id="fog-container"></div>
     
-    <canvas id="confetti-canvas" style="position: absolute; top:0; left:0; width: 100%; height: 100%; z-index: -1;"></canvas>
+    <audio id="bgm" loop src="ใส่ลิงก์ไฟล์เสียงเพลงประกอบที่นี่.mp3"></audio>
+    <audio id="click-sfx" src="ใส่ลิงก์เสียงคลิกที่นี่.mp3"></audio>
+    <audio id="success-sfx" src="ใส่ลิงก์เสียงเอฟเฟกต์ตอนจบที่นี่.mp3"></audio>
+
 
     <script src="https://cdn.jsdelivr.net/npm/js-confetti@latest/dist/js-confetti.browser.js"></script>
     <script>
-        const startButton = document.getElementById('startButton');
-        const text1 = document.getElementById('text1');
-        const text2 = document.getElementById('text2');
-        const fogContainer = document.getElementById('fog-container');
+        // --- 🖼️ ตั้งค่ารูปภาพและเสียงตรงนี้ ---
+        const ASSETS = {
+            images: {
+                start: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=2070&auto=format&fit=crop', // ภาพพื้นหลังตอนเริ่ม
+                bedroom: 'https://images.unsplash.com/photo-1595526114035-0d45ed16433d?q=80&w=1924&auto=format&fit=crop', // ภาพห้องนอน
+                kitchen: 'https://images.unsplash.com/photo-1600607686527-6fb88629f44b?q=80&w=1887&auto=format&fit=crop', // ภาพห้องครัว
+                garden: 'https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?q=80&w=2070&auto=format&fit=crop', // ภาพสวน
+                party: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=1974&auto=format&fit=crop' // ภาพห้องจัดเลี้ยง
+            },
+            sounds: {
+                // ใส่ลิงก์เสียงของคุณตรง src ของ <audio> tag ด้านบน
+                bgm: document.getElementById('bgm'),
+                click: document.getElementById('click-sfx'),
+                success: document.getElementById('success-sfx')
+            }
+        };
+        // ------------------------------------
+
+        const startButton = document.getElementById('start-btn');
+        const startScreen = document.getElementById('start-screen');
+        const endScreen = document.getElementById('end-screen');
+        const replayButton = document.getElementById('replay-btn');
+        
+        const sceneBackground = document.getElementById('scene-background');
+        const storyWrapper = document.getElementById('story-wrapper');
+        const storyTextElement = document.getElementById('story-text');
+        const choicesContainer = document.getElementById('choices-container');
         
         const jsConfetti = new JSConfetti();
 
-        // ฟังก์ชันสร้างหมอก
-        function createFog() {
-            for (let i = 0; i < 20; i++) { // สร้างหมอก 20 ชิ้น
-                const particle = document.createElement('div');
-                particle.className = 'fog-particle';
-                
-                // สุ่มตำแหน่งและขนาด
-                particle.style.left = `${Math.random() * 100}%`;
-                particle.style.animationDuration = `${(Math.random() * 20) + 15}s`; // 15-35 วินาที
-                particle.style.animationDelay = `${Math.random() * 5}s`;
-                particle.style.transform = `scale(${Math.random() * 1.5 + 0.5})`;
+        startButton.addEventListener('click', startGame);
+        replayButton.addEventListener('click', () => location.reload()); // รีเฟรชหน้าเพื่อเริ่มใหม่
+        
+        function startGame() {
+            startScreen.classList.add('hidden');
+            sceneBackground.style.backgroundImage = `url('${ASSETS.images.start}')`;
+            sceneBackground.style.opacity = 1;
+            
+            // เล่นเพลงประกอบ (บราวเซอร์ส่วนใหญ่จะบล็อกถ้าผู้ใช้ยังไม่กดอะไรเลย)
+            ASSETS.sounds.bgm.volume = 0.3;
+            ASSETS.sounds.bgm.play().catch(e => console.log("User needs to interact with the document first to play audio."));
+            
+            showStoryNode(1);
+        }
 
-                fogContainer.appendChild(particle);
+        async function showStoryNode(storyNodeId) {
+            const storyNode = storyNodes.find(node => node.id === storyNodeId);
+
+            // Fade out current text
+            storyWrapper.classList.remove('visible');
+            await new Promise(resolve => setTimeout(resolve, 500)); // รอแอนิเมชัน
+
+            // Update background
+            if (sceneBackground.style.backgroundImage !== `url("${storyNode.image}")`) {
+                 sceneBackground.style.opacity = 0;
+                 await new Promise(resolve => setTimeout(resolve, 1500));
+                 sceneBackground.style.backgroundImage = `url('${storyNode.image}')`;
+                 sceneBackground.style.opacity = 1;
+                 await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            // Update text and choices
+            storyTextElement.innerText = storyNode.text;
+            while (choicesContainer.firstChild) {
+                choicesContainer.removeChild(choicesContainer.firstChild);
+            }
+
+            if(storyNode.options) {
+                storyNode.options.forEach(option => {
+                    const button = document.createElement('button');
+                    button.innerText = option.text;
+                    button.classList.add('choice-btn');
+                    button.addEventListener('click', () => {
+                        ASSETS.sounds.click.currentTime = 0;
+                        ASSETS.sounds.click.play();
+                        showStoryNode(option.nextId);
+                    });
+                    choicesContainer.appendChild(button);
+                });
+            }
+
+            // Fade in new text
+            storyWrapper.classList.add('visible');
+
+            // Handle special final scene
+            if(storyNode.id === 'partySurprise') {
+                ASSETS.sounds.bgm.pause();
+                ASSETS.sounds.success.play();
+                jsConfetti.addConfetti({
+                    emojis: ['🎉', '🎂', '🎈', '🎁', '💖'],
+                    emojiSize: 100,
+                    confettiNumber: 200,
+                });
+                
+                setTimeout(() => {
+                    storyWrapper.classList.remove('visible');
+                    endScreen.classList.remove('hidden');
+                }, 5000); // แสดงหน้าจอจบหลังจาก 5 วินาที
             }
         }
 
-        startButton.addEventListener('click', () => {
-            // 1. ซ่อนปุ่ม
-            startButton.classList.add('hidden');
-
-            // 2. โปรย Confetti
-            jsConfetti.addConfetti({
-                emojis: ['🎉', '🎂', '🎈', '🎁', '💖'],
-                emojiSize: 80,
-                confettiNumber: 100,
-            });
-
-            // 3. แสดงหมอก
-            fogContainer.classList.add('active');
-            createFog();
-
-            // 4. แสดงข้อความแรกหลังจากผ่านไป 2 วินาที
-            setTimeout(() => {
-                text1.classList.add('show');
-            }, 2000); // 2000 milliseconds = 2 seconds
-
-            // 5. ซ่อนข้อความแรกและแสดงข้อความที่สอง หลังจากผ่านไป 5 วินาที
-            setTimeout(() => {
-                text1.classList.remove('show');
-                text2.classList.add('show');
-            }, 5000); // 5000 milliseconds = 5 seconds
-        });
+        // --- 📖 เนื้อเรื่องของเกม ---
+        const storyNodes = [
+            {
+                id: 1,
+                image: ASSETS.images.bedroom,
+                text: 'คุณลืมตาตื่นขึ้นมาในเช้าวันเกิด แสงแดดอ่อนๆ ส่องเข้ามาในห้อง บนโต๊ะข้างเตียงมีโน้ตเล็กๆ วางอยู่ คุณจะ...',
+                options: [
+                    { text: 'หยิบโน้ตขึ้นมาอ่าน', nextId: 2 },
+                    { text: 'ลุกไปห้องครัวเพื่อหาอะไรดื่ม', nextId: 3 }
+                ]
+            },
+            {
+                id: 2,
+                image: ASSETS.images.bedroom,
+                text: 'ในโน้ตเขียนด้วยลายมือคุ้นเคยว่า "คำใบ้แรกรออยู่ในที่ที่เย็นที่สุดในบ้าน..." ดูเหมือนว่าการผจญภัยได้เริ่มขึ้นแล้ว!',
+                options: [
+                    { text: 'มุ่งหน้าไปที่ห้องครัว! (ตู้เย็น)', nextId: 3 }
+                ]
+            },
+            {
+                id: 3,
+                image: ASSETS.images.kitchen,
+                text: 'เมื่อมาถึงห้องครัว บนประตูตู้เย็นมีกล่องของขวัญเล็กๆ ผูกโบว์สวยงามวางอยู่ พร้อมการ์ดที่เขียนว่า "ความทรงจำดีๆ รออยู่ข้างนอกนะ"',
+                options: [
+                    { text: 'เปิดกล่องดูเดี๋ยวนี้เลย', nextId: 4 },
+                    { text: 'ออกไปที่สวนหลังบ้าน', nextId: 5 }
+                ]
+            },
+            {
+                id: 4,
+                image: ASSETS.images.kitchen,
+                text: 'คุณเปิดกล่องออก ในนั้นมีเพียงรูปถ่ายของคุณตอนเด็กๆ พร้อมข้อความด้านหลังว่า "ใกล้ถึงแล้ว... ตามเสียงเพลงไปสิ" คุณเงี่ยหูฟังและได้ยินเสียงเพลงเบาๆ ลอยมาจากสวน',
+                options: [
+                    { text: 'เดินตามเสียงเพลงไปที่สวน', nextId: 5 }
+                ]
+            },
+            {
+                id: 5,
+                image: ASSETS.images.garden,
+                text: 'สวนหลังบ้านวันนี้ดูสวยงามเป็นพิเศษ มีลูกโป่งมากมายผูกตามทางเดินนำไปสู่ประตูบานหนึ่งที่ไม่เคยเห็นมาก่อน คุณได้ยินเสียงหัวเราะและเสียงเพลงดังออกมาจากประตูนั้น',
+                options: [
+                    { text: 'รวบรวมความกล้าแล้วเปิดประตูเข้าไป!', nextId: 'partySurprise' }
+                ]
+            },
+            {
+                id: 'partySurprise',
+                image: ASSETS.images.party,
+                text: 'เมื่อเปิดประตูเข้าไป... "เซอร์ไพรส์!!!" เสียงทุกคนดังขึ้นพร้อมกัน! เพื่อนๆ และครอบครัวรอคุณอยู่แล้วในห้องที่ประดับประดาอย่างสวยงาม!'
+                // No options, this is the final node
+            }
+        ];
     </script>
-
 </body>
 </html>
