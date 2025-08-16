@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday!</title>
+    <style>
+        /* CSS สำหรับตกแต่งหน้าเว็บและปุ่ม */
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #2c3e50; /* เปลี่ยนสีพื้นหลังให้เข้มขึ้นเพื่อให้เห็นควันชัดเจน */
+            font-family: 'Mitr', sans-serif; /* ใช้ฟอนต์ที่ดูน่ารักขึ้น (ต้อง import) */
+            overflow: hidden; /* ซ่อน scrollbar */
+            position: relative; /* ทำให้ body เป็นตัวอ้างอิงตำแหน่งของ element ลูก */
+        }
+
+        .start-button {
+            padding: 20px 40px;
+            font-size: 24px;
+            color: white;
+            background-color: #ff4757;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            outline: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 10; /* ทำให้ปุ่มอยู่เหนือทุกอย่าง */
+        }
+
+        .start-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .start-button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .hidden {
+            transform: scale(0); /* ทำให้ปุ่มหดเล็กลงจนหายไป */
+            opacity: 0;
+            transition: transform 0.5s ease, opacity 0.5s ease;
+        }
+        
+        /* Container สำหรับข้อความ */
+        .text-container {
+            position: absolute;
+            text-align: center;
+            color: white;
+            z-index: 5;
+        }
+
+        /* สไตล์ข้อความที่ซ่อนไว้ตอนแรก */
+        .message {
+            font-size: 3em; /* 3 เท่าของขนาดฟอนต์ปกติ */
+            opacity: 0; /* ซ่อนไว้ตอนแรก */
+            transform: scale(0.8);
+            transition: opacity 1.5s ease-in-out, transform 1.5s ease-in-out;
+            position: absolute;
+            width: 100%;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+        }
+        
+        /* คลาสสำหรับทำให้ข้อความแสดงผล */
+        .message.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* ---- ส่วนของหมอกควัน (Fog/Smoke Effect) ---- */
+        #fog-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none; /* ทำให้คลิกทะลุได้ */
+            opacity: 0; /* ซ่อนไว้ตอนแรก */
+            transition: opacity 2s ease-in;
+        }
+
+        #fog-container.active {
+            opacity: 1; /* แสดงผลเมื่อมีคลาส active */
+        }
+
+        .fog-particle {
+            position: absolute;
+            bottom: -200px; /* เริ่มจากใต้จอ */
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+            animation: floatUp 20s infinite linear;
+        }
+        
+        /* Keyframes สำหรับการเคลื่อนไหวของหมอก */
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) translateX(0) scale(1);
+                opacity: 0.5;
+            }
+            50% {
+                transform: translateY(-50vh) translateX(50px) scale(1.5);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(-50px) scale(2);
+                opacity: 0;
+            }
+        }
+
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    
+    <button id="startButton" class="start-button">start</button>
+
+    <div class="text-container">
+        <h1 id="text1" class="message">วันนี้วันสำคัญของใครน้า...</h1>
+        <h1 id="text2" class="message">สุขสันต์วันเกิดนะ! 🎂</h1>
+    </div>
+
+    <div id="fog-container"></div>
+    
+    <canvas id="confetti-canvas" style="position: absolute; top:0; left:0; width: 100%; height: 100%; z-index: -1;"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/js-confetti@latest/dist/js-confetti.browser.js"></script>
+    <script>
+        const startButton = document.getElementById('startButton');
+        const text1 = document.getElementById('text1');
+        const text2 = document.getElementById('text2');
+        const fogContainer = document.getElementById('fog-container');
+        
+        const jsConfetti = new JSConfetti();
+
+        // ฟังก์ชันสร้างหมอก
+        function createFog() {
+            for (let i = 0; i < 20; i++) { // สร้างหมอก 20 ชิ้น
+                const particle = document.createElement('div');
+                particle.className = 'fog-particle';
+                
+                // สุ่มตำแหน่งและขนาด
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.animationDuration = `${(Math.random() * 20) + 15}s`; // 15-35 วินาที
+                particle.style.animationDelay = `${Math.random() * 5}s`;
+                particle.style.transform = `scale(${Math.random() * 1.5 + 0.5})`;
+
+                fogContainer.appendChild(particle);
+            }
+        }
+
+        startButton.addEventListener('click', () => {
+            // 1. ซ่อนปุ่ม
+            startButton.classList.add('hidden');
+
+            // 2. โปรย Confetti
+            jsConfetti.addConfetti({
+                emojis: ['🎉', '🎂', '🎈', '🎁', '💖'],
+                emojiSize: 80,
+                confettiNumber: 100,
+            });
+
+            // 3. แสดงหมอก
+            fogContainer.classList.add('active');
+            createFog();
+
+            // 4. แสดงข้อความแรกหลังจากผ่านไป 2 วินาที
+            setTimeout(() => {
+                text1.classList.add('show');
+            }, 2000); // 2000 milliseconds = 2 seconds
+
+            // 5. ซ่อนข้อความแรกและแสดงข้อความที่สอง หลังจากผ่านไป 5 วินาที
+            setTimeout(() => {
+                text1.classList.remove('show');
+                text2.classList.add('show');
+            }, 5000); // 5000 milliseconds = 5 seconds
+        });
+    </script>
+
+</body>
+</html>
